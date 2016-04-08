@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 #
 # pyxhook -- an extension to emulate some of the PyHook library on linux.
 #
@@ -43,7 +43,7 @@ from Xlib.ext import record
 from Xlib.protocol import rq
 
 #######################################################################
-# #######################START CLASS DEF################################
+########################START CLASS DEF################################
 #######################################################################
 
 
@@ -150,15 +150,13 @@ class HookManager(threading.Thread):
         if reply.client_swapped:
             print("* received swapped protocol data, cowardly ignored")
             return
-        if not len(reply.data):
+        if not len(reply.data) or ord(reply.data[0:1]) < 2:
             # not an event
             return
         data = reply.data
         while len(data):
-            event, data = (rq.EventField(None).
-                           parse_binary_value(data,
-                                              self.record_dpy.display,
-                                              None, None))
+            event, data = rq.EventField(None).parse_binary_value(
+                data, self.record_dpy.display, None, None)
             if event.type == X.KeyPress:
                 hookevent = self.keypressevent(event)
                 self.KeyDown(hookevent)
@@ -200,7 +198,7 @@ class HookManager(threading.Thread):
                 if not self.ison["caps"]:
                     self.ison["shift"] = self.ison["shift"] + 1
                     self.ison["caps"] = True
-                if not self.ison["caps"]:
+                if self.ison["caps"]:
                     self.ison["shift"] = self.ison["shift"] - 1
                     self.ison["caps"] = False
             return self.makekeyhookevent(keysym, event)
@@ -389,7 +387,7 @@ class pyxhookmouseevent:
 
 
 #######################################################################
-# ########################END CLASS DEF#################################
+#########################END CLASS DEF#################################
 #######################################################################
 
 if __name__ == '__main__':
